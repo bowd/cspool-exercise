@@ -5,19 +5,17 @@ import { IERC20Metadata } from "openzeppelin/token/ERC20/extensions/IERC20Metada
 import { PRBMathUD60x18Typed, PRBMath } from "prb-math/PRBMathUD60x18Typed.sol";
 
 /**
- * @title ConstantSumPool
+ * @title Pool
  * @dev A constant sum pool that allows swapping between two assets with the same price.
  */
 contract ConstantSumPool {
   using PRBMathUD60x18Typed for PRBMath.UD60x18;
 
   address public asset0;
-  uint256 public asset0DecimalMultiplier;
   uint256 public bucket0;
 
   address public asset1;
   uint256 public bucket1;
-  uint256 public asset1DecimalMultiplier;
 
   PRBMath.UD60x18 fee;
 
@@ -27,28 +25,17 @@ contract ConstantSumPool {
     uint256 _fee
   ) {
     asset0 = _asset0;
-    uint8 asset0Decimals = IERC20Metadata(_asset0).decimals();
-    require(asset0Decimals <= 18, "asset0 decimals must be <= 18");
-    asset0DecimalMultiplier = 1 ** (18 - asset0Decimals);
-
     asset1 = _asset1;
-    uint8 asset1Decimals = IERC20Metadata(_asset1).decimals();
-    require(asset0Decimals <= 18, "asset1 decimals must be <= 18");
-    asset1DecimalMultiplier = 1 ** (18 - asset1Decimals);
 
     fee = PRBMath.UD60x18({value: _fee});
   }
 
   function deposit(uint256 amount0, uint256 amount1) public {
-    require (
-      amount0 * asset0DecimalMultiplier == amount1 * asset1DecimalMultiplier,
-      "amount0 and amount1 must be the same"
-    );
     IERC20Metadata(asset0).transferFrom(msg.sender, address(this), amount0);
     IERC20Metadata(asset1).transferFrom(msg.sender, address(this), amount1);
 
-    bucket0 += amount0 * asset0DecimalMultiplier;
-    bucket1 += amount1 * asset1DecimalMultiplier;
+    bucket0 += amount0;
+    bucket1 += amount1;
   }
 
   function getAmountOut(address assetIn, uint256 _amountIn) external view returns (uint256) {
@@ -93,47 +80,32 @@ contract ConstantSumPool {
     IERC20Metadata(assetOut).transfer(msg.sender, amountOut);
   }
 
-  function _getAmountOut(address assetIn, uint256 _amountIn) private view returns (uint256) {
-    uint256 assetInDecimalMultiplier;
-    uint256 assetOutDecimalMultiplier;
+  function _getAmountOut(address assetIn, uint256 _amountIn) internal view returns (uint256 amountOut) {
     uint256 bucketOut;
     if (assetIn == asset0) {
-      assetInDecimalMultiplier = asset0DecimalMultiplier;
-      assetOutDecimalMultiplier = asset1DecimalMultiplier;
       bucketOut = bucket1;
     } else {
-      assetInDecimalMultiplier = asset1DecimalMultiplier;
-      assetOutDecimalMultiplier = asset0DecimalMultiplier;
       bucketOut = bucket0;
     }
+    // x + y = k
+    amountOut = _amountIn;
+    // Todo add fee calculation
 
-    PRBMath.UD60x18 memory amountIn = PRBMath.UD60x18({value: _amountIn * assetInDecimalMultiplier});
-    PRBMath.UD60x18 memory constant_1 = PRBMath.UD60x18({value: 1e18});
-    PRBMath.UD60x18 memory amountOut = amountIn.mul(constant_1.sub(fee));
-
-    require(amountOut.value <= bucketOut, "insufficient liquidity");
-    return amountOut.value / assetOutDecimalMultiplier;
+    require(amountOut <= bucketOut, "insufficient liquidity");
   }
 
-  function _getAmountIn(address assetIn, uint256 _amountOut) private view returns (uint256) {
-    uint256 assetInDecimalMultiplier;
-    uint256 assetOutDecimalMultiplier;
+  function _getAmountIn(address assetIn, uint256 _amountOut) internal view returns (uint256 amountIn) {
     uint256 bucketOut;
     if (assetIn == asset0) {
-      assetInDecimalMultiplier = asset0DecimalMultiplier;
-      assetOutDecimalMultiplier = asset1DecimalMultiplier;
       bucketOut = bucket1;
     } else {
-      assetInDecimalMultiplier = asset1DecimalMultiplier;
-      assetOutDecimalMultiplier = asset0DecimalMultiplier;
       bucketOut = bucket0;
     }
 
-    PRBMath.UD60x18 memory amountOut = PRBMath.UD60x18({value: _amountOut * assetOutDecimalMultiplier});
-    PRBMath.UD60x18 memory constant_1 = PRBMath.UD60x18({value: 1e18});
-    PRBMath.UD60x18 memory amountIn = amountOut.div(constant_1.sub(fee));
+    // x + y = k
+    amountIn = _amountOut;
+    // Todo add fee calculation
 
-    require(amountOut.value <= bucketOut, "insufficient liquidity");
-    return amountIn.value / assetInDecimalMultiplier;
+    require(_amountOut <= bucketOut, "insufficient liquidity");
   }
 }
