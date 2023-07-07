@@ -65,12 +65,6 @@ contract ConstantSumPool {
   }
 
   function _getAmountOut(address assetIn, uint256 _amountIn) internal view returns (uint256 amountOut) {
-    uint256 bucketOut;
-    if (assetIn == asset0) {
-      bucketOut = bucket1;
-    } else {
-      bucketOut = bucket0;
-    }
     // x + y = k
     // x + Δx + y - Δy = k
     // Δx - Δy = 0
@@ -80,19 +74,11 @@ contract ConstantSumPool {
   }
 
   function _getAmountIn(address assetIn, uint256 _amountOut) internal view returns (uint256 amountIn) {
-    uint256 bucketOut;
-    if (assetIn == asset0) {
-      bucketOut = bucket1;
-    } else {
-      bucketOut = bucket0;
-    }
-
     // x + y = k
     // x + Δx + y - Δy = k
     // Δx - Δy = 0
     // Δx = Δy
     // Todo add fee calculation
-
     amountIn = _amountOut;
   }
 
