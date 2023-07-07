@@ -53,11 +53,11 @@ describe("ConstantSumPool", () => {
       await pool.deposit(1e10, 1e10);
 
       let balanceBefore = await asset1.balanceOf(await owner.getAddress());
-      await pool.swapOut(await asset0.getAddress(), 1e9);
+      await pool.swapInFixed(await asset0.getAddress(), 1e9);
       let balanceAfter = await asset1.balanceOf(await owner.getAddress());
       expect(balanceAfter - balanceBefore).to.equal(999e6);
       balanceBefore = balanceAfter;
-      await pool.swapOut(await asset1.getAddress(), 1e9);
+      await pool.swapInFixed(await asset1.getAddress(), 1e9);
       balanceAfter = await asset1.balanceOf(await owner.getAddress());
       expect(balanceAfter - balanceBefore).to.equal(999e6);
 

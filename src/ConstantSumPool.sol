@@ -46,7 +46,7 @@ contract ConstantSumPool {
     return _getAmountIn(assetIn, _amountOut);
   }
 
-  function swapOut(address assetIn, uint256 amountIn) external returns (uint256 amountOut) {
+  function swapInFixed(address assetIn, uint256 amountIn) external returns (uint256 amountOut) {
     amountOut = _getAmountOut(assetIn, amountIn);
     address assetOut = assetIn == asset0 ? asset1 : asset0;
     _updateBuckets(assetIn, amountIn, amountOut);
@@ -55,7 +55,7 @@ contract ConstantSumPool {
     IERC20Metadata(assetOut).transfer(msg.sender, amountOut);
   }
 
-  function swapIn(address assetIn, uint256 amountOut) external returns (uint256 amountIn) {
+  function swapOutFixed(address assetIn, uint256 amountOut) external returns (uint256 amountIn) {
     amountIn = _getAmountIn(assetIn, amountOut);
     address assetOut = assetIn == asset0 ? asset1 : asset0;
     _updateBuckets(assetIn, amountIn, amountOut);
