@@ -38,7 +38,7 @@ contract PoolTest is Test {
     pool.deposit(10e22, 10e22);
   }
 
-  function testSwap() public {
+  function testSwapWithFee() public {
     deal(address(asset0), address(this), 1e24);
     deal(address(asset1), address(this), 1e24);
 
