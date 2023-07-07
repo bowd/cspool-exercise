@@ -39,32 +39,27 @@ contract ConstantSumPool {
   }
 
   function getAmountOut(address assetIn, uint256 _amountIn) external view returns (uint256) {
-    return _getAmountOut(assetIn, _amountIn);
+    return _getAmountOut(_amountIn);
   }
 
   function getAmountIn(address assetIn, uint256 _amountOut) external view returns (uint256) {
-    return _getAmountIn(assetIn, _amountOut);
+    return _getAmountIn(_amountOut);
   }
 
   function swapInFixed(address assetIn, uint256 amountIn) external returns (uint256 amountOut) {
-    amountOut = _getAmountOut(assetIn, amountIn);
+    amountOut = _getAmountOut(amountIn);
     address assetOut = assetIn == asset0 ? asset1 : asset0;
-    _updateBuckets(assetIn, amountIn, amountOut);
-
-    IERC20Metadata(assetIn).transferFrom(msg.sender, address(this), amountIn);
-    IERC20Metadata(assetOut).transfer(msg.sender, amountOut);
+    _executeSwap(assetIn, amountIn, assetOut, amountOut);
   }
 
   function swapOutFixed(address assetIn, uint256 amountOut) external returns (uint256 amountIn) {
-    amountIn = _getAmountIn(assetIn, amountOut);
+    amountIn = _getAmountIn(amountOut);
     address assetOut = assetIn == asset0 ? asset1 : asset0;
-    _updateBuckets(assetIn, amountIn, amountOut);
+    _executeSwap(assetIn, amountIn, assetOut, amountOut);
 
-    IERC20Metadata(assetIn).transferFrom(msg.sender, address(this), amountIn);
-    IERC20Metadata(assetOut).transfer(msg.sender, amountOut);
   }
 
-  function _getAmountOut(address assetIn, uint256 _amountIn) internal view returns (uint256 amountOut) {
+  function _getAmountOut(uint256 _amountIn) internal view returns (uint256 amountOut) {
     // x + y = k
     // x + Δx + y - Δy = k
     // Δx - Δy = 0
@@ -73,7 +68,7 @@ contract ConstantSumPool {
     amountOut = _amountIn;
   }
 
-  function _getAmountIn(address assetIn, uint256 _amountOut) internal view returns (uint256 amountIn) {
+  function _getAmountIn(uint256 _amountOut) internal view returns (uint256 amountIn) {
     // x + y = k
     // x + Δx + y - Δy = k
     // Δx - Δy = 0
@@ -82,7 +77,10 @@ contract ConstantSumPool {
     amountIn = _amountOut;
   }
 
-  function _updateBuckets(address assetIn, uint256 amountIn, uint256 amountOut) internal {
+  function _executeSwap(address assetIn, uint256 amountIn, address assetOut, uint256 amountOut) internal {
+    IERC20Metadata(assetIn).transferFrom(msg.sender, address(this), amountIn);
+    IERC20Metadata(assetOut).transfer(msg.sender, amountOut);
+
     if (assetIn == asset0) {
       require(amountOut < bucket1, "insufficient liquidity");
       bucket0 += amountIn;
