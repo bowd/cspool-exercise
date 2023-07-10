@@ -46,23 +46,54 @@ describe("ConstantSumPool", () => {
     });
   });
 
-  describe("Swap", () => {
-    it("Should swap with fee", async () => {
-      const { pool, asset0, asset1, owner } = await loadFixture(deployPool);
+  type Snapshot = {
+    asset0: bigint;
+    asset1: bigint;
+  };
 
+  const snapshotBalances = async (
+    owner,
+    asset0,
+    asset1
+  ): Promise<Snapshot> => ({
+    asset0: await asset0.balanceOf(await owner.getAddress()),
+    asset1: await asset1.balanceOf(await owner.getAddress()),
+  });
+
+  const deltaBalances = (before: Snapshot, after: Snapshot): Snapshot => ({
+    asset0: after.asset0 - before.asset0,
+    asset1: after.asset1 - before.asset1,
+  });
+
+  describe("Swap", () => {
+    it("Should swap fixed amount of asset0 for asset0 with fee", async () => {
+      const { pool, asset0, asset1, owner } = await loadFixture(deployPool);
       await pool.deposit(1e10, 1e10);
 
-      let balanceBefore = await asset1.balanceOf(await owner.getAddress());
+      const balancesBefore = await snapshotBalances(owner, asset0, asset1);
       await pool.swapInFixed(await asset0.getAddress(), 1e9);
-      let balanceAfter = await asset1.balanceOf(await owner.getAddress());
-      expect(balanceAfter - balanceBefore).to.equal(999e6);
-      balanceBefore = balanceAfter;
-      await pool.swapInFixed(await asset1.getAddress(), 1e9);
-      balanceAfter = await asset1.balanceOf(await owner.getAddress());
-      expect(balanceAfter - balanceBefore).to.equal(999e6);
+      const delta = deltaBalances(
+        balancesBefore,
+        await snapshotBalances(owner, asset0, asset1)
+      );
 
-      expect(await pool.bucket0()).to.equal(12e9);
-      expect(await pool.bucket1()).to.equal(98e9 + 2e6);
+      expect(delta.asset0).to.equal(-1e9);
+      expect(delta.asset1).to.equal(999e6);
+    });
+
+    it("Should swap asset0 for fixed amount of asset1 with fee", async () => {
+      const { pool, asset0, asset1, owner } = await loadFixture(deployPool);
+      await pool.deposit(1e10, 1e10);
+
+      const balancesBefore = await snapshotBalances(owner, asset0, asset1);
+      await pool.swapOutFixed(await asset0.getAddress(), 1e9);
+      const delta = deltaBalances(
+        balancesBefore,
+        await snapshotBalances(owner, asset0, asset1)
+      );
+
+      expect(delta.asset0).to.equal(-1001001001);
+      expect(delta.asset1).to.equal(1e9);
     });
   });
 });
