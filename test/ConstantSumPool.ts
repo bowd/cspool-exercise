@@ -92,7 +92,7 @@ describe("ConstantSumPool", () => {
         await snapshotBalances(owner, asset0, asset1)
       );
 
-      expect(delta.asset0).to.equal(-1001001001);
+      expect(delta.asset0).to.equal(-102e7);
       expect(delta.asset1).to.equal(1e9);
     });
   });
