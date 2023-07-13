@@ -1,16 +1,19 @@
-import {
-  time,
-  loadFixture,
-} from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { IERC20, TERC20__factory } from "../typechain-types";
+import { ConstantSumPool__factory } from "../typechain-types";
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 describe("ConstantSumPool", () => {
   async function deployPool() {
     const [owner, otherAccount] = await ethers.getSigners();
-    const ConstantSumPool = await ethers.getContractFactory("ConstantSumPool");
-    const ERC20 = await ethers.getContractFactory("tERC20");
+    const ConstantSumPool = (await ethers.getContractFactory(
+      "ConstantSumPool"
+    )) as ConstantSumPool__factory;
+    const ERC20 = (await ethers.getContractFactory(
+      "tERC20"
+    )) as TERC20__factory;
     const asset0 = await ERC20.deploy("Asset0", "A0");
     const asset1 = await ERC20.deploy("Asset1", "A1");
     const pool = await ConstantSumPool.deploy(
@@ -52,9 +55,9 @@ describe("ConstantSumPool", () => {
   };
 
   const snapshotBalances = async (
-    owner,
-    asset0,
-    asset1
+    owner: HardhatEthersSigner,
+    asset0: IERC20,
+    asset1: IERC20
   ): Promise<Snapshot> => ({
     asset0: await asset0.balanceOf(await owner.getAddress()),
     asset1: await asset1.balanceOf(await owner.getAddress()),
