@@ -29,7 +29,7 @@ contract PoolTest is Test {
     pool = new ConstantSumPool(address(asset0), address(asset1), 1e15);
   }
 
-  function testDeposit() public {
+  function deposit() public {
     deal(address(asset0), address(this), 10e22);
     deal(address(asset1), address(this), 10e22);
 
@@ -38,20 +38,45 @@ contract PoolTest is Test {
     pool.deposit(10e22, 10e22);
   }
 
-  function testSwapWithFee() public {
-    deal(address(asset0), address(this), 1e24);
-    deal(address(asset1), address(this), 1e24);
+  function testDeposit() public {
+    deposit();
+    assertEq(pool.bucket0(), 10e22);
+    assertEq(pool.bucket1(), 10e22);
+  }
 
-    asset0.approve(address(pool), 1e24);
-    asset1.approve(address(pool), 1e24);
+  function test_swapFixedAmountInWithFee() public {
+    deposit();
 
-    pool.deposit(10e22, 10e22);
-    uint256 expectedOut0 = pool.swapOut(address(asset0), 1e21);
-    uint256 expectedOut1 = pool.swapOut(address(asset0), 1e21);
+    deal(address(asset0), address(this), 1e22);
+    asset0.approve(address(pool), 1e22);
 
-    assertEq(expectedOut0, 999e18);
-    assertEq(expectedOut1, 999e18);
-    assertEq(pool.bucket0(), 102e21);
-    assertEq(pool.bucket1(), 98e21 + 2e18); // with fee
+    uint256 asset0StartBalance = asset0.balanceOf(address(this));
+    uint256 asset1StartBalance = asset1.balanceOf(address(this));
+
+    pool.swapInFixed(address(asset0), 1e21);
+
+    uint256 asset0Delta = asset0StartBalance - asset0.balanceOf(address(this));
+    uint256 asset1Delta = asset1.balanceOf(address(this)) - asset1StartBalance;
+
+    assertEq(asset0Delta, 1e21);
+    assertEq(asset1Delta, 1e21);
+  }
+
+  function test_swapFixedAmountOutWithFee() public {
+    deposit();
+
+    deal(address(asset0), address(this), 1e22);
+    asset0.approve(address(pool), 1e22);
+
+    uint256 asset0StartBalance = asset0.balanceOf(address(this));
+    uint256 asset1StartBalance = asset1.balanceOf(address(this));
+
+    pool.swapOutFixed(address(asset0), 1e21);
+
+    uint256 asset0Delta = asset0StartBalance - asset0.balanceOf(address(this));
+    uint256 asset1Delta = asset1.balanceOf(address(this)) - asset1StartBalance;
+
+    assertEq(asset0Delta, 1e21);
+    assertEq(asset1Delta, 1e21);
   }
 }

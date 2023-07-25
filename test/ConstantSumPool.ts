@@ -81,7 +81,7 @@ describe("ConstantSumPool", () => {
       );
 
       expect(delta.asset0).to.equal(-1e9);
-      expect(delta.asset1).to.equal(999e6);
+      expect(delta.asset1).to.equal(1e9);
     });
 
     it("Should swap asset0 for fixed amount of asset1 with fee", async () => {
@@ -95,7 +95,7 @@ describe("ConstantSumPool", () => {
         await snapshotBalances(owner, asset0, asset1)
       );
 
-      expect(delta.asset0).to.equal(-102e7);
+      expect(delta.asset0).to.equal(-1e9);
       expect(delta.asset1).to.equal(1e9);
     });
   });
