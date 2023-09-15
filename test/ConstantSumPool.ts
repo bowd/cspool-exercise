@@ -80,6 +80,7 @@ describe("ConstantSumPool", () => {
         await snapshotBalances(owner, asset0, asset1)
       );
 
+      // XXX: Expectations here are wrong, they don't take fee into account
       expect(delta.asset0).to.equal(-1e9);
       expect(delta.asset1).to.equal(1e9);
     });
@@ -95,6 +96,7 @@ describe("ConstantSumPool", () => {
         await snapshotBalances(owner, asset0, asset1)
       );
 
+      // XXX: Expectations here are wrong, they don't take fee into account
       expect(delta.asset0).to.equal(-1e9);
       expect(delta.asset1).to.equal(1e9);
     });

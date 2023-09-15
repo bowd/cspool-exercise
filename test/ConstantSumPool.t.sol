@@ -58,6 +58,7 @@ contract PoolTest is Test {
     uint256 asset0Delta = asset0StartBalance - asset0.balanceOf(address(this));
     uint256 asset1Delta = asset1.balanceOf(address(this)) - asset1StartBalance;
 
+      // XXX: Expectations here are wrong, they don't take fee into account
     assertEq(asset0Delta, 1e21);
     assertEq(asset1Delta, 1e21);
   }
@@ -76,6 +77,7 @@ contract PoolTest is Test {
     uint256 asset0Delta = asset0StartBalance - asset0.balanceOf(address(this));
     uint256 asset1Delta = asset1.balanceOf(address(this)) - asset1StartBalance;
 
+      // XXX: Expectations here are wrong, they don't take fee into account
     assertEq(asset0Delta, 1e21);
     assertEq(asset1Delta, 1e21);
   }

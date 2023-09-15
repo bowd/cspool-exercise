@@ -2,14 +2,13 @@
 pragma solidity ^0.8.13;
 
 import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import { PRBMathUD60x18Typed, PRBMath } from "@prb/math/contracts/PRBMathUD60x18Typed.sol";
 
 /**
  * @title Pool
  * @dev A constant sum pool that allows swapping between two assets with the same price.
  */
 contract ConstantSumPool {
-  using PRBMathUD60x18Typed for PRBMath.UD60x18;
+  uint256 private constant PRECISION = 1e18;
 
   address public asset0;
   uint256 public bucket0;
@@ -17,7 +16,7 @@ contract ConstantSumPool {
   address public asset1;
   uint256 public bucket1;
 
-  PRBMath.UD60x18 public swapFee;
+  uint256 public swapFee;
 
   constructor(
     address _asset0,
@@ -26,8 +25,7 @@ contract ConstantSumPool {
   ) {
     asset0 = _asset0;
     asset1 = _asset1;
-
-    swapFee = PRBMath.UD60x18({value: _swapFee});
+    swapFee = _swapFee;
   }
 
   function deposit(uint256 amount0, uint256 amount1) public {
